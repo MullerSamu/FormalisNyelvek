@@ -3,6 +3,7 @@ import argparse
 
 class DfaProblem(Problem):
 
+    
     def initialize_parser(self, parser: argparse.ArgumentParser):
         """
         Initialize the parser with the necessary arguments for the DFA problem.
@@ -13,7 +14,7 @@ class DfaProblem(Problem):
         """
         Check if this problem is chosen based on the provided arguments.
         """
-        return bool(args.check)
+        return bool(args.check) # -- check-el igaz hamis erteket ad vissza
 
     def run(self, args):
         """
@@ -29,18 +30,18 @@ class DfaProblem(Problem):
         with open(input_file, 'r') as f:
             lines = [line.strip() for line in f.readlines() if line.strip()]
 
-        # Extract DFA components from the first 4 lines
-        states = lines[0].split()          
-        alphabet = lines[1].split()        
-        start_state = lines[2]             
-        final_states = set(lines[3].split()) 
+        #az elso sorbol kinyerjuk az allapotokat , szokozok menten daraboljuk
+        states = lines[0].split() #ugyanugy abc-t    
+        alphabet = lines[1].split() #ugyanugy abc-t 
+        start_state = lines[2] #2 index egeszet elemnti, mint a kezdoallapotot       
+        final_states = set(lines[3].split()) #kinyeri a vegeallapotokat es halmazba teszi
 
         # Parse the transitions (from the 5th line onwards)
-        transitions = {}
+        transitions = {} 
         for line in lines[4:]:
-            parts = line.split()
+            parts = line.split() #feldataboljuk szokozok menten
             if len(parts) == 3:
-                curr_st, symbol, next_st = parts
+                curr_st, symbol, next_st = parts #kulon valtozokra bontjuk
                 # Store transition as a tuple key: (current_state, symbol) -> next_state
                 transitions[(curr_st, symbol)] = next_st
 
