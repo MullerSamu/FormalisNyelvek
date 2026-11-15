@@ -21,30 +21,32 @@ class RegexProblem(Problem):
         results = []
 
         if task_num == '1':
-            counts = [0] * 10
-            for line in lines:
-                # 1. 10. hónap 15-én jött létre
-                if re.search(r"^10-15\b", line): counts[0] += 1
-                # 2. 10-15 10:18:51 (milliszekundumok nélkül is működik)
-                if re.search(r"^10-15 10:18:51\b", line): counts[1] += 1
-                # 3. 51 másodperckor (milliszekundumok nélkül is működik)
-                if re.search(r"^[0-9-]+ \d{2}:\d{2}:51\b", line): counts[2] += 1
-                # 4. lowmemorykiller taget tartalmazó sor (kezeli, ha van előtte/utána más is a tagben)
-                if re.search(r"^[0-9-]+ [0-9:.]+ +\d+ +\d+ +[IDVEFAW] +[^:]*lowmemorykiller[^:]*:", line): counts[3] += 1
-                # 5. 10:18:51-kor, 221-es PID (pontosan a PID-t nézi)
-                if re.search(r"^[0-9-]+ 10:18:51\b[^\s]* +221\b", line): counts[4] += 1
-                # 6. Hibát (E) tartalmazó sor
-                if re.search(r"^[0-9-]+ [0-9:.]+ +\d+ +\d+ +E ", line): counts[5] += 1
-                # 7. Warning (W) a PackageManager-től
-                if re.search(r"^[0-9-]+ [0-9:.]+ +\d+ +\d+ +W +[^:]*PackageManager[^:]*:", line): counts[6] += 1
-                # 8. ExoPlayer debug (D)
-                if re.search(r"^[0-9-]+ [0-9:.]+ +\d+ +\d+ +D +[^:]*ExoPlayer[^:]*:", line): counts[7] += 1
-                # 9. E vagy W, tartalmazza a .java:-t
-                if re.search(r"^[0-9-]+ [0-9:.]+ +\d+ +\d+ +[EW] +.*\.java:", line): counts[8] += 1
-                # 10. Thread szó a message részben
-                if re.search(r"^[0-9-]+ [0-9:.]+ +\d+ +\d+ +[IDVEFAW] +[^:]+: .*Thread", line): counts[9] += 1
-                
-            results = [str(c) for c in counts]
+            patterns = [
+                # 1. az összes sort, amelyik 10. hónap 15-én jött létre
+                re.compile(r"^10-15 "),
+                # 2. az összes sort, amelyik 10. hónap 15-én 10 óra 18 perc és 51 másodperckor jött létre
+                re.compile(r"^10-15 10:18:51\."),
+                # 3. az összes sort, amelyik 51 másodperckor jött létre (mindegy a perc)
+                re.compile(r"^[0-9-]+ [0-9]{2}:[0-9]{2}:51\."),
+                # 4. az összes lowmemorykiller taget tartalmazó sor
+                re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] lowmemorykiller *:"),
+                # 5. az összes 10:18:51 kor keletkező 221-es process id-jú sort
+                re.compile(r"^[0-9-]+ 10:18:51\.[0-9]+ +221 +[0-9]+ "),
+                # 6. az összes hibát tartalmazó sort (E)
+                re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ E "),
+                # 7. az összes warningot (W) amit a PackageManager küld
+                re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ W PackageManager *:"),
+                # 8. az összes ExoPlayer-es debug (D) infót
+                re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ D .*ExoPlayer"),
+                # 9. az összes java állomány pozíciót tartalmazó hibát és warningot (EW .java:)
+                re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [EW] .*\.java:"),
+                # 10. az összes olyan sort, ami tartalmazza a Thread szót a message részben (nem a tagben) -> tag: message
+                re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] .+?: .*Thread")
+            ]
+            results = [
+                str(sum(1 for line in lines if p.search(line)))
+                for p in patterns
+            ]
 
         # --- INNENTŐL LENT MINDEN TÖKÉLETES, NEM NYÚLUNK HOZZÁ ---
 
